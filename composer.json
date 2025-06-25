@@ -18,7 +18,10 @@
         "laravel": {
             "providers": [
                 "THKHD\\SsoClient\\SSOClientServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "SSOClient": "THKHD\\SsoClient\\Facades\\SSOClient"
+            }
         }
     },
     "minimum-stability": "dev",

@@ -16,6 +16,20 @@
   - Tự động xử lý xác thực và lưu thông tin đăng nhập.
   - Gọi được API với token đã nhận.
 
+## ✅ Checklist chức năng hoàn chỉnh
+
+| Tính năng | Trạng thái |
+|-----------|------------|
+| Cấu trúc package Laravel chuẩn | ✅ |
+| Config publish được | ✅ |
+| Redirect login | X |
+| Xử lý callback + token exchange | X |
+| Middleware bảo vệ route | X |
+| Gọi API lấy user info | ✅ |
+| Lưu session / token | X |
+| Logout (SSO + local) | X |
+| Hướng dẫn sử dụng | ✅ |
+
 ## ⚙️ 2. Kỹ thuật sử dụng
 
 - **Chuẩn xác thực**: OAuth2 Authorization Code Flow.
@@ -38,7 +52,7 @@
 | 3 | Người dùng đăng nhập trên SSO Provider |
 | 4 | SSO redirect lại về `redirect_uri` của client kèm `code` |
 | 5 | Client gửi `code` đến token endpoint để lấy `access_token` |
-| 6 | Client dùng `access_token` để gọi API `/userinfo` hoặc `/me` |
+| 6 | Client dùng `access_token` để gọi API `/user` |
 | 7 | Client lưu thông tin user vào session hoặc cache |
 
 ## 📦 4. Tính năng chính của Package
@@ -49,8 +63,6 @@
 | `Callback Handler` | Hàm nhận `code`, đổi sang `access_token`, lấy thông tin người dùng |
 | `Token Service` | Lưu token, xử lý refresh token (nếu cần) |
 | `Get User` | Lấy thông tin người dùng từ token |
-| `Middleware` | Bảo vệ route yêu cầu đăng nhập |
-| `Logout` | Xoá session, token, gọi logout URL của SSO |
 
 ## 🧩 5. Cấu trúc Package
 
@@ -84,14 +96,11 @@ return [
     'client_id' => env('SSO_CLIENT_ID'),
     'client_secret' => env('SSO_CLIENT_SECRET'),
     'redirect_uri' => env('SSO_REDIRECT_URI'),
-    'auth_endpoint' => env('SSO_AUTH_ENDPOINT'),
-    'token_endpoint' => env('SSO_TOKEN_ENDPOINT'),
-    'user_info_endpoint' => env('SSO_USER_INFO_ENDPOINT'),
-    'logout_endpoint' => env('SSO_LOGOUT_ENDPOINT'),
+    'server_url' => env('SSO_SERVER_URL'),
 ];
 ```
 
-### 6.2. Middleware
+### 6.2. Middleware - Chưa phát triển
 ```php
 public function handle($request, Closure $next)
 {
@@ -106,7 +115,7 @@ public function handle($request, Closure $next)
 ### 6.3. Controller flow
 - `redirectToSSO()`: Redirect đến Authorization Server.
 - `handleCallback()`: Đổi `code` thành `access_token`, lưu thông tin user.
-- `logout()`: Gọi logout SSO, xoá session local.
+- `logout()`: Client app tự xử lí logout.
 
 ## 📘 7. Cách sử dụng package (ví dụ)
 
@@ -118,13 +127,10 @@ php artisan vendor:publish --tag=sso-client-config
 
 ### B. Cấu hình `.env`
 ```env
-SSO_CLIENT_ID=my-client-id
-SSO_CLIENT_SECRET=my-secret
-SSO_REDIRECT_URI=https://my-app.com/sso/callback
-SSO_AUTH_ENDPOINT=https://sso-server.com/oauth/authorize
-SSO_TOKEN_ENDPOINT=https://sso-server.com/oauth/token
-SSO_USER_INFO_ENDPOINT=https://sso-server.com/api/user
-SSO_LOGOUT_ENDPOINT=https://sso-server.com/logout
+SSO_SERVER_URL=http://127.0.0.1:8001
+SSO_CLIENT_ID=xxxxxxxxxxxxxxxxxx
+SSO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxx
+SSO_REDIRECT_URI=http://localhost:8000/sso-client/callback
 ```
 
 ### C. Sử dụng Middleware
@@ -134,24 +140,78 @@ Route::middleware(['web', 'sso.auth'])->group(function () {
 });
 ```
 
-### D. Gọi thông tin người dùng
+### D. Gọi thông tin người dùng - Chưa phát triển
 ```php
 $user = SSOClient::user(); // trả về array hoặc model từ session
 ```
 
-## ✅ 8. Checklist chức năng hoàn chỉnh
+# 🧩 Hướng dẫn cấu hình `resolve` route để xử lý đăng nhập từ SSO
 
-| Tính năng | Trạng thái |
-|-----------|------------|
-| Cấu trúc package Laravel chuẩn | X |
-| Config publish được |X |
-| Redirect login | X |
-| Xử lý callback + token exchange | X |
-| Middleware bảo vệ route | X |
-| Gọi API lấy user info | X |
-| Lưu session / token | X |
-| Logout (SSO + local) | X |
-| Hướng dẫn sử dụng | ✅ |
+Sau khi SSO Server xác thực thành công, nó sẽ chuyển hướng về route `resolve` trong app client, kèm theo thông tin người dùng được mã hoá. Bạn có thể tuỳ chỉnh cơ chế login theo ý muốn, dưới đây là mẩu xử lí tham khảo:
+
+## 📄 8. Controller, Routes, Config cần xử lý
+
+```php
+<form method="POST" action="{{ route('sso-client.login') }}">
+    @csrf
+    <div class="form-group">
+        <x-button color="primary" size="lg" class="btn-block" type="submit">
+            {{ __('messages.button.login') }} </x-button>
+    </div>
+</form>
+```
+
+```php
+/*
+|--------------------------------------------------------------------------
+| User Resolver Route
+|--------------------------------------------------------------------------
+|
+| Route name trỏ đến controller xử lý đăng nhập user từ thông tin SSO.
+|
+*/
+'user_resolver' => 'sso-client.user-resolver',
+```
+
+```php
+use App\Http\Controllers\SSOLoginController;
+
+Route::get('/sso/resolve', [SSOLoginController::class, 'resolve'])
+    ->name('sso-client.user-resolver')
+    ->middleware('signed');
+```
+
+```php
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
+class SSOLoginController extends Controller
+{
+    /**
+     * Resolve
+     *
+     * Xử lý dữ liệu từ SSO server và thực hiện đăng nhập user.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function resolve(Request $request)
+    {
+        $userInfo = decrypt($request->query('data'));
+
+        $user = User::where('email', $userInfo['email'])->first();
+
+        if (! $user) {
+            abort(403, 'Tài khoản chưa được cấp phép để đăng nhập.');
+        }
+
+        Auth::login($user);
+
+        return redirect()->intended('/');
+    }
+}
+```
 
 ## 📌 9. Mở rộng sau này
 
