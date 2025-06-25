@@ -22,13 +22,13 @@
 |-----------|------------|
 | Cấu trúc package Laravel chuẩn | ✅ |
 | Config publish được | ✅ |
-| Redirect login | X |
-| Xử lý callback + token exchange | X |
-| Middleware bảo vệ route | X |
+| Redirect login | ✅ |
+| Xử lý callback + token exchange | ✅ |
 | Gọi API lấy user info | ✅ |
-| Lưu session / token | X |
-| Logout (SSO + local) | X |
+| Lưu session / token | ✅ |
 | Hướng dẫn sử dụng | ✅ |
+| Logout (SSO + local) | X |
+| Middleware bảo vệ route | X |
 
 ## ⚙️ 2. Kỹ thuật sử dụng
 

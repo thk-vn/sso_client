@@ -11,7 +11,7 @@ return [
     | refresh token, v.v...
     |
     */
-    'server_url' => env('SSO_SERVER_URL', 'https://sso.example.com'),
+    'server_url' => env('SSO_SERVER_URL', 'http://localhost:8000'),
 
     /*
     |--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ return [
     */
     'client_id'     => env('SSO_CLIENT_ID'),
     'client_secret' => env('SSO_CLIENT_SECRET'),
-    'redirect_uri'  => env('SSO_REDIRECT_URI', '/sso/callback'),
+    'redirect_uri'  => env('SSO_REDIRECT_URI', 'http://localhost:8000/sso-client/callback'),
 
     /*
     |--------------------------------------------------------------------------
@@ -43,8 +43,8 @@ return [
     | Prefix dùng cho các route do package này cung cấp, ví dụ: /sso/login
     |
     */
-    'route_prefix' => 'sso',
-    
+    'route_prefix' => 'sso-client',
+
     /*
     |--------------------------------------------------------------------------
     | Route Name

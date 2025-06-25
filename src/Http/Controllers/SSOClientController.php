@@ -5,6 +5,7 @@ namespace THKHD\SsoClient\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\URL;
+use THKHD\SsoClient\Facades\SSOClient;
 
 class SSOClientController extends Controller
 {
@@ -35,7 +36,7 @@ class SSOClientController extends Controller
     public function handleCallback(Request $request)
     {
         try {
-            $userInfo = app('sso-client')->fetchUserFromCode(
+            $userInfo = SSOClient::fetchUserFromCode(
                 $request->query('code'),
                 config('sso-client.redirect_uri')
             );

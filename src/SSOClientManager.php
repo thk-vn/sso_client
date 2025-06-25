@@ -4,6 +4,9 @@ namespace THKHD\SsoClient;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\JsonResponse;
+use THKHD\SsoClient\Exceptions\AccessTokenException;
+use THKHD\SsoClient\Exceptions\UserFetchException;
+use Illuminate\Support\Facades\Session;
 
 class SSOClientManager
 {
@@ -16,28 +19,35 @@ class SSOClientManager
      * 
      * @return JsonResponse
      */
-    public function fetchUserFromCode(string $code, string $redirectUri): ?array
+    public function fetchUserFromCode(string $code, string $redirectUri)
     {
-        $tokenResponse = Http::asForm()->get(config('sso-client.server_url') . '/api/oauth/token', [
-            'grant_type'    => 'authorization_code',
-            'client_id'     => config('sso-client.client_id'),
-            'client_secret' => config('sso-client.client_secret'),
-            'redirect_uri'  => $redirectUri,
-            'code'          => $code,
-        ]);
+        try {
+            $tokenResponse = Http::asForm()->get(config('sso-client.server_url') . '/api/oauth/token', [
+                'grant_type'    => 'authorization_code',
+                'client_id'     => config('sso-client.client_id'),
+                'client_secret' => config('sso-client.client_secret'),
+                'redirect_uri'  => $redirectUri,
+                'code'          => $code,
+            ]);
 
-        if ($tokenResponse->failed()) {
-            throw new \Exception('Failed to retrieve access token');
+            if ($tokenResponse->failed()) {
+                throw new AccessTokenException();
+            }
+
+            $accessToken = $tokenResponse->json()['access_token'];
+            $userResponse = Http::withToken($accessToken)->get(config('sso-client.server_url') . '/api/user');
+
+            if ($userResponse->failed()) {
+                throw new UserFetchException();
+            }
+
+            Session::put('sso_user', $userResponse->json());
+
+            return $userResponse->json();
+        } catch (\Throwable $e) {
+            report($e);
+            throw $e;
         }
-
-        $accessToken = $tokenResponse->json()['access_token'];
-        $userResponse = Http::withToken($accessToken)->get(config('sso-client.server_url') . '/api/user');
-
-        if ($userResponse->failed()) {
-            throw new \Exception('Failed to retrieve user');
-        }
-
-        return $userResponse->json();
     }
 
     /**
@@ -47,9 +57,6 @@ class SSOClientManager
      */
     public function user()
     {
-        return [
-            'email' => '',
-            'name' => ''
-        ];
+        return Session::get('sso_user', null);
     }
 }
