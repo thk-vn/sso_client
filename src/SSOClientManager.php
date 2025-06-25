@@ -39,4 +39,17 @@ class SSOClientManager
 
         return $userResponse->json();
     }
+
+    /**
+     * Get SSO User
+     * 
+     * @return array
+     */
+    public function user()
+    {
+        return [
+            'email' => '',
+            'name' => ''
+        ];
+    }
 }

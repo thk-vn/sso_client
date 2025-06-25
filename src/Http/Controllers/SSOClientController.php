@@ -3,12 +3,8 @@
 namespace THKHD\SsoClient\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
-use InvalidArgumentException;
-use Session;
 
 class SSOClientController extends Controller
 {
