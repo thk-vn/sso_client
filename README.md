@@ -31,12 +31,6 @@
 
 - **Chuẩn xác thực**: OAuth2 Authorization Code Flow.
 - **Laravel version**: Tương thích Laravel 9 trở lên.
-- **Công nghệ chính**:
-  - Laravel Service Provider.
-  - Middleware.
-  - Laravel HTTP Client.
-  - Session hoặc Cache.
-  - Config publish.
 
 ## 🔁 3. OAuth2 Flow dành cho Client
 
@@ -94,10 +88,11 @@ SSO_REDIRECT_URI=http://localhost:8000/sso-client/callback
 
 ### C. Xử lí login (Tham khảo, bạn có thể tuỳ chỉnh thêm)
 ```php
+use THKHD\SsoClient\Facades\SSOClient;
+
 public function login(Request $request)
 {
     $state = 'sssssssssssssssssssss';
-    $state = Session::get('state_sso');
     $redirectUrl = SSOClient::buildAuthorizationUrl($state);
     return redirect($redirectUrl);
 }
@@ -134,6 +129,8 @@ public function handleCallback(Request $request)
 
 ### D. Gọi thông tin người dùng
 ```php
+use THKHD\SsoClient\Facades\SSOClient;
+
 $accessToken = SSOClient::getSSOToken();
 $user = SSOClient::user($accessToken['access_token']);
 ```
