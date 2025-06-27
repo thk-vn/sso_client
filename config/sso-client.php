@@ -7,7 +7,7 @@ return [
     | SSO Server Endpoint
     |--------------------------------------------------------------------------
     |
-    | Địa chỉ endpoint của hệ thống SSO Provider dùng để login, lấy user info,
+    | The endpoint address of the SSO Provider system used to login and get user info.
     | refresh token, v.v...
     |
     */
@@ -18,41 +18,21 @@ return [
     | OAuth2 Client Credentials
     |--------------------------------------------------------------------------
     |
-    | Các thông tin định danh của client khi kết nối với SSO Provider.
+    | Client identification information when connecting to SSO Provider.
     |
     */
-    'client_id'     => env('SSO_CLIENT_ID'),
-    'client_secret' => env('SSO_CLIENT_SECRET'),
-    'redirect_uri'  => env('SSO_REDIRECT_URI', 'http://localhost:8000/sso-client/callback'),
+    'client_id'     => env('SSO_CLIENT_ID', ''),
+    'client_secret' => env('SSO_CLIENT_SECRET', ''),
+    'redirect_uri'  => env('SSO_REDIRECT_URI', 'http://localhost:8001/sso-client/callback'),
+    'token_uri'     => '/oauth/token',
+    'authorize_uri' => '/oauth/authorize',
+    'user_uri'      => '/api/user',
 
     /*
     |--------------------------------------------------------------------------
-    | Token Storage
+    | Save Token in Session
     |--------------------------------------------------------------------------
-    |
-    | Lưu token ở đâu? 'session' hoặc 'cache' (dùng cache driver mặc định).
-    |
     */
-    'token_store' => 'session',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Route Prefix
-    |--------------------------------------------------------------------------
-    |
-    | Prefix dùng cho các route do package này cung cấp, ví dụ: /sso/login
-    |
-    */
-    'route_prefix' => 'sso-client',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Route Name
-    |--------------------------------------------------------------------------
-    |
-    | Route name dẩn đến controller xử lí login
-    | Cho phép từng app client tùy chỉnh route xử lý login (resolve()).
-    |
-    */
-    'user_resolver' => 'sso-client.user-resolver',
+    'save_token_flg' => true,
+    'token_key' => 'sso_token',
 ];
