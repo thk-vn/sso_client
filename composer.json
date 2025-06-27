@@ -2,6 +2,7 @@
     "name": "thk-hd/sso-client",
     "description": "Package Laravel xác thực OAuth2",
     "type": "library",
+    "version": "1.0.0",
     "license": "MIT",
     "authors": [
         {
