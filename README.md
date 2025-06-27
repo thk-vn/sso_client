@@ -74,7 +74,8 @@ laravel-sso-client/
 
 ### A. Cài đặt
 ```bash
-composer require thk-hd/sso-client:dev-main
+composer require thk-hd/sso-client
+composer require thk-hd/sso-client:dev-main (dev)
 php artisan vendor:publish --tag=sso-client-config
 ```
 
