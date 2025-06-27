@@ -22,13 +22,10 @@
 |-----------|------------|
 | Cấu trúc package Laravel chuẩn | ✅ |
 | Config publish được | ✅ |
-| Redirect login | ✅ |
 | Xử lý callback + token exchange | ✅ |
 | Gọi API lấy user info | ✅ |
 | Lưu session / token | ✅ |
 | Hướng dẫn sử dụng | ✅ |
-| Logout (SSO + local) | X |
-| Middleware bảo vệ route | X |
 
 ## ⚙️ 2. Kỹ thuật sử dụng
 
@@ -70,58 +67,20 @@
 laravel-sso-client/
 ├── src/
 │   ├── SSOClientServiceProvider.php
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── AuthController.php
-│   │   └── Middleware/
-│   │       └── EnsureSSOAuthenticated.php
-│   ├── Services/
-│   │   └── TokenService.php
 │   ├── Facades/
 │   │   └── SSOClient.php
 │   └── SSOClientManager.php
-├── routes/
-│   └── web.php
 ├── config/
 │   └── sso-client.php
 ├── README.md
 ├── composer.json
 ```
 
-## ⚙️ 6. Các thành phần kỹ thuật cụ thể
-
-### 6.1. Cấu hình (`config/sso-client.php`)
-```php
-return [
-    'client_id' => env('SSO_CLIENT_ID'),
-    'client_secret' => env('SSO_CLIENT_SECRET'),
-    'redirect_uri' => env('SSO_REDIRECT_URI'),
-    'server_url' => env('SSO_SERVER_URL'),
-];
-```
-
-### 6.2. Middleware - Chưa phát triển
-```php
-public function handle($request, Closure $next)
-{
-    if (!session()->has('sso_user')) {
-        return redirect()->route('sso.login');
-    }
-
-    return $next($request);
-}
-```
-
-### 6.3. Controller flow
-- `redirectToSSO()`: Redirect đến Authorization Server.
-- `handleCallback()`: Đổi `code` thành `access_token`, lưu thông tin user.
-- `logout()`: Client app tự xử lí logout.
-
-## 📘 7. Cách sử dụng package (ví dụ)
+## 📘 5. Cách sử dụng package (ví dụ)
 
 ### A. Cài đặt
 ```bash
-composer require thk-hd/sso-client
+composer require thk-hd/sso-client:dev-main
 php artisan vendor:publish --tag=sso-client-config
 ```
 
@@ -133,92 +92,48 @@ SSO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxx
 SSO_REDIRECT_URI=http://localhost:8000/sso-client/callback
 ```
 
-### C. Sử dụng Middleware
+### C. Xử lí login (Tham khảo, bạn có thể tuỳ chỉnh thêm)
 ```php
-Route::middleware(['web', 'sso.auth'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-});
-```
-
-### D. Gọi thông tin người dùng - Chưa phát triển
-```php
-$user = SSOClient::user(); // trả về array hoặc model từ session
-```
-
-# 🧩 Hướng dẫn cấu hình `resolve` route để xử lý đăng nhập từ SSO
-
-Sau khi SSO Server xác thực thành công, nó sẽ chuyển hướng về route `resolve` trong app client, kèm theo thông tin người dùng được mã hoá. Bạn có thể tuỳ chỉnh cơ chế login theo ý muốn, dưới đây là mẩu xử lí tham khảo:
-
-## 📄 8. Controller, Routes, Config cần xử lý
-
-```php
-<form method="POST" action="{{ route('sso-client.login') }}">
-    @csrf
-    <div class="form-group">
-        <x-button color="primary" size="lg" class="btn-block" type="submit">
-            {{ __('messages.button.login') }} </x-button>
-    </div>
-</form>
-```
-
-```php
-/*
-|--------------------------------------------------------------------------
-| User Resolver Route
-|--------------------------------------------------------------------------
-|
-| Route name trỏ đến controller xử lý đăng nhập user từ thông tin SSO.
-|
-*/
-'user_resolver' => 'sso-client.user-resolver',
-```
-
-```php
-use App\Http\Controllers\SSOLoginController;
-
-Route::get('/sso/resolve', [SSOLoginController::class, 'resolve'])
-    ->name('sso-client.user-resolver')
-    ->middleware('signed');
-```
-
-```php
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-
-class SSOLoginController extends Controller
+public function login(Request $request)
 {
-    /**
-     * Resolve
-     *
-     * Xử lý dữ liệu từ SSO server và thực hiện đăng nhập user.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function resolve(Request $request)
-    {
-        $userInfo = decrypt($request->query('data'));
+    $state = 'sssssssssssssssssssss';
+    $state = Session::get('state_sso');
+    $redirectUrl = SSOClient::buildAuthorizationUrl($state);
+    return redirect($redirectUrl);
+}
 
-        $user = User::where('email', $userInfo['email'])->first();
-
-        if (! $user) {
-            abort(403, 'Tài khoản chưa được cấp phép để đăng nhập.');
-        }
-
-        Auth::login($user);
-
-        return redirect()->intended('/');
+public function handleCallback(Request $request)
+{
+    $code = $request->query('code');
+    $state = $request->query('state');
+    $stateSso = 'sssssssssssssssssssss';
+    if (!$code || !$state) {
+        abort(400, 'Missing code or state.');
     }
+
+    if ($state !== $stateSso) {
+        abort(403, 'Invalid state detected (CSRF protection).');
+    }
+
+    try {
+        $tokenResponse = SSOClient::getAccessToken($code);
+        $userInfo = SSOClient::user($tokenResponse['access_token']);
+    } catch (\Exception $e) {
+        logger()->error('SSO Callback Error', ['message' => $e->getMessage()]);
+        abort(500, 'SSO Authentication failed.');
+    }
+
+    $user = User::where('email', $userInfo['email'] ?? '')->first();
+    if (! $user) {
+        abort(403, 'Tài khoản chưa được cấp phép để đăng nhập.');
+    }
+    Auth::login($user);
+    return redirect()->intended('/');
 }
 ```
 
-## 📌 9. Mở rộng sau này
-
-- Hỗ trợ refresh token tự động.
-- Caching thông tin user.
-- Tự động attach access token khi gọi API nội bộ.
-
-## 🧠 10. Kết luận
-
-Việc đóng gói hệ thống OAuth2 client thành một Laravel package là bước quan trọng để **chuẩn hóa và tái sử dụng** quá trình xác thực giữa nhiều hệ thống Laravel. Điều này giúp giảm chi phí bảo trì, tăng tốc độ phát triển và đảm bảo tính bảo mật cho toàn bộ hệ sinh thái ứng dụng nội bộ.
+### D. Gọi thông tin người dùng
+```php
+$accessToken = SSOClient::getSSOToken();
+$user = SSOClient::user($accessToken['access_token']);
+```
