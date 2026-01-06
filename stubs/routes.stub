@@ -1,0 +1,46 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use THKHD\SsoClient\Http\Controllers\SSOAuthenticateController;
+use THKHD\SsoClient\Http\Middleware\ValidateSSOSecretMiddleware;
+
+/*
+|--------------------------------------------------------------------------
+| SSO Client Routes
+|--------------------------------------------------------------------------
+|
+| Authentication routes for SSO Client package.
+| You can customize these routes or move them to your existing routes files.
+|
+*/
+
+// Guest routes
+Route::middleware('guest')->group(function () {
+    Route::get('login', [SSOAuthenticateController::class, 'showLoginForm'])
+        ->name('login.show');
+
+    Route::post('login', [SSOAuthenticateController::class, 'redirectToSSO'])
+        ->name('login');
+
+    Route::get('callback', [SSOAuthenticateController::class, 'callback'])
+        ->name('sso.callback');
+});
+
+// Authenticated routes
+Route::middleware('auth')->group(function () {
+    Route::post('logout', [SSOAuthenticateController::class, 'logout'])
+        ->name('logout');
+
+    Route::get('switch-language/{language}', [SSOAuthenticateController::class, 'switchLanguage'])
+        ->name('sso.switch-language');
+});
+
+// Remote logout endpoint - called by SSO server to force logout users
+Route::middleware([ValidateSSOSecretMiddleware::class])->group(function () {
+    Route::post('remote-logout', [SSOAuthenticateController::class, 'forceLogout'])
+        ->name('sso.remote-logout');
+    
+    // Alternative route name
+    Route::post('force-logout', [SSOAuthenticateController::class, 'forceLogout'])
+        ->name('sso.force-logout');
+});

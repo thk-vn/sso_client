@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Laravel SSO Client Package - Package xác thực OAuth2 cho Laravel">
+    <title>SSO Client Package - Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        window.Prism = window.Prism || {};
+        window.Prism.manual = true;
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-env.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>THK - SSO Client</h1>
+                <p class="version">v1.0.0</p>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="#introduction" class="nav-link active">Giới thiệu</a></li>
+                    <li><a href="#installation" class="nav-link">Cài đặt</a></li>
+                    <li><a href="#configuration" class="nav-link">Cấu hình</a></li>
+                    <li><a href="#usage" class="nav-link">Sử dụng</a></li>
+                    <li><a href="#methods" class="nav-link">Methods</a></li>
+                    <li><a href="#middleware" class="nav-link">Middleware</a></li>
+                    <li><a href="#navigation-menu" class="nav-link">Navigation Menu</a></li>
+                    <li><a href="#remote-logout" class="nav-link">Remote Logout</a></li>
+                    <li><a href="#examples" class="nav-link">Ví dụ</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="https://github.com/thk-hd/sso_client" target="_blank" class="github-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Introduction -->
+            <section id="introduction" class="section">
+                <h1>📄 Package Laravel xác thực OAuth2 (SSO Client)</h1>
+                
+                <h2>🔖 Mô tả chung</h2>
+                <p><strong>Mục tiêu:</strong> Xây dựng một Laravel package đóng vai trò như một <strong>client thư viện OAuth2</strong>, phục vụ việc xác thực người dùng thông qua hệ thống <strong>SSO (Single Sign-On)</strong>.</p>
+                
+                <p><strong>Đối tượng sử dụng:</strong> Các hệ thống Laravel khác (gọi là <strong>client app</strong>) muốn xác thực người dùng thông qua hệ thống <strong>SSO Provider</strong> trung tâm.</p>
+                
+                <p><strong>Kết quả mong đợi:</strong> Một package Laravel hoàn chỉnh, dễ cài đặt và tích hợp, cho phép client app:</p>
+                <ul>
+                    <li>Redirect người dùng tới SSO để đăng nhập</li>
+                    <li>Nhận token và thông tin người dùng</li>
+                    <li>Tự động xử lý xác thực và lưu thông tin đăng nhập</li>
+                    <li>Gọi được API với token đã nhận</li>
+                </ul>
+
+                <h2>⚙️ Kỹ thuật sử dụng</h2>
+                <ul>
+                    <li><strong>Chuẩn xác thực:</strong> OAuth2 Authorization Code Flow</li>
+                    <li><strong>Laravel version:</strong> Tương thích Laravel 9 trở lên</li>
+                </ul>
+            </section>
+
+            <!-- Installation -->
+            <section id="installation" class="section">
+                <h2>📦 Cài đặt</h2>
+                
+                <h3>A. Cài đặt Package</h3>
+                <pre><code class="language-bash">composer require thk-hd/sso-client</code></pre>
+
+                <h3>B. Chạy Install Command (Khuyến nghị)</h3>
+                <pre><code class="language-bash">php artisan sso-client:install</code></pre>
+                <p>Command này sẽ tự động:</p>
+                <ul>
+                    <li>✅ Publish config file</li>
+                    <li>✅ Tạo routes file với đầy đủ routes</li>
+                    <li>✅ Thêm biến môi trường vào .env</li>
+                    <li>✅ Load routes file</li>
+                    <li>✅ Register middleware</li>
+                    <li>✅ Configure admin check</li>
+                </ul>
+
+                <h3>C. Setup thủ công (nếu không dùng install command)</h3>
+                <pre><code class="language-bash">php artisan vendor:publish --tag=sso-client-config</code></pre>
+            </section>
+
+            <!-- Configuration -->
+            <section id="configuration" class="section">
+                <h2>⚙️ Cấu hình</h2>
+                
+                <h3>Environment Variables</h3>
+                <p>Thêm vào file <code>.env</code>:</p>
+                <pre><code class="language-env">SSO_SERVER_URL=http://127.0.0.1:8001
+SSO_CLIENT_ID=xxxxxxxxxxxxxxxxxx
+SSO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxx
+SSO_REDIRECT_URI=http://localhost:8000/callback
+SSO_MENUS_URI=/api/menus
+SSO_NAVIGATION_ENABLED=true
+SSO_REMOTE_LOGOUT_SECRET=your-strong-secret-token-here
+SSO_REMOTE_LOGOUT_ENABLED=true</code></pre>
+
+                <h3>Tạo Remote Logout Secret</h3>
+                <pre><code class="language-bash"># Cách 1: Dùng PHP
+php -r "echo bin2hex(random_bytes(32));"
+
+# Cách 2: Dùng OpenSSL
+openssl rand -hex 32</code></pre>
+            </section>
+
+            <!-- Usage -->
+            <section id="usage" class="section">
+                <h2>🚀 Sử dụng nhanh</h2>
+                
+                <h3>1. Sử dụng Install Command</h3>
+                <pre><code class="language-bash">php artisan sso-client:install</code></pre>
+                <p>Sau đó load routes file trong <code>routes/web.php</code>:</p>
+                <pre><code class="language-php">require __DIR__.'/sso-client.php';</code></pre>
+
+                <h3>2. Register Middleware</h3>
+                <p>Trong <code>bootstrap/app.php</code>:</p>
+                <pre><code class="language-php">use THKHD\SsoClient\Http\Middleware\AdminMiddleware;
+use THKHD\SsoClient\Http\Middleware\PermissionMiddleware;
+use THKHD\SsoClient\Http\Middleware\RefreshNavigationMiddleware;
+
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->web([RefreshNavigationMiddleware::class]);
+    $middleware->alias([
+        'admin' => AdminMiddleware::class,
+        'permission' => PermissionMiddleware::class,
+    ]);
+})</code></pre>
+
+                <h3>3. Configure Admin Check</h3>
+                <p>Trong <code>AppServiceProvider::boot()</code>:</p>
+                <pre><code class="language-php">config(['sso-client.admin_check' => fn($user) => $user->role === 'admin']);</code></pre>
+            </section>
+
+            <!-- Methods -->
+            <section id="methods" class="section">
+                <h2>🔧 Các Method có sẵn</h2>
+                
+                <h3>Authentication Methods</h3>
+                <div class="method-list">
+                    <div class="method-item">
+                        <code>buildAuthorizationUrl(string $state, array $extraParams = [])</code>
+                        <p>Tạo URL để redirect đến SSO</p>
+                    </div>
+                    <div class="method-item">
+                        <code>getAccessToken(string $code)</code>
+                        <p>Lấy access token từ authorization code</p>
+                    </div>
+                    <div class="method-item">
+                        <code>getUser(string $accessToken)</code>
+                        <p>Lấy thông tin user từ SSO server</p>
+                    </div>
+                    <div class="method-item">
+                        <code>validateState(?string $sessionState, ?string $requestState)</code>
+                        <p>Validate state parameter để chống CSRF</p>
+                    </div>
+                </div>
+
+                <h3>Token Management</h3>
+                <div class="method-list">
+                    <div class="method-item">
+                        <code>saveSSOToken(string $token)</code>
+                        <p>Lưu token vào session</p>
+                    </div>
+                    <div class="method-item">
+                        <code>getSSOToken()</code>
+                        <p>Lấy token từ session</p>
+                    </div>
+                    <div class="method-item">
+                        <code>clearSSOToken()</code>
+                        <p>Xóa token khỏi session</p>
+                    </div>
+                    <div class="method-item">
+                        <code>revokeToken(string $accessToken)</code>
+                        <p>Revoke token trên SSO server</p>
+                    </div>
+                </div>
+
+                <h3>Navigation Menu</h3>
+                <div class="method-list">
+                    <div class="method-item">
+                        <code>storeNavigationMenu(string $accessToken, ?string $lang = 'en')</code>
+                        <p>Lấy và lưu navigation menu từ SSO</p>
+                    </div>
+                    <div class="method-item">
+                        <code>getNavigationMenu()</code>
+                        <p>Lấy navigation menu từ session</p>
+                    </div>
+                    <div class="method-item">
+                        <code>clearNavigationMenu()</code>
+                        <p>Xóa navigation menu khỏi session</p>
+                    </div>
+                </div>
+
+                <h3>User Management</h3>
+                <div class="method-list">
+                    <div class="method-item">
+                        <code>createOrUpdateUser(array $userData, ?callable $callback = null)</code>
+                        <p>Tạo hoặc cập nhật user từ SSO data</p>
+                    </div>
+                    <div class="method-item">
+                        <code>forceLogout(string|int $identifier)</code>
+                        <p>Force logout user theo email hoặc user_id</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Middleware -->
+            <section id="middleware" class="section">
+                <h2>🛡️ Middleware</h2>
+                
+                <div class="middleware-item">
+                    <h3>RefreshNavigationMiddleware</h3>
+                    <p>Tự động refresh navigation menu từ SSO và đảm bảo token hợp lệ. Middleware sẽ tự động skip nếu:</p>
+                    <ul>
+                        <li>User chưa đăng nhập (guest)</li>
+                        <li>Route nằm trong <code>config('sso-client.middleware.skip_routes')</code></li>
+                        <li><code>navigation_enabled</code> = <code>false</code></li>
+                    </ul>
+                    <pre><code class="language-php">$middleware->web([RefreshNavigationMiddleware::class]);</code></pre>
+                </div>
+
+                <div class="middleware-item">
+                    <h3>PermissionMiddleware</h3>
+                    <p>Kiểm tra quyền truy cập dựa trên permissions từ SSO session</p>
+                    <pre><code class="language-php">Route::middleware(['auth', 'permission:app.dashboard'])->group(function () {
+    // Protected routes
+});</code></pre>
+                </div>
+
+                <div class="middleware-item">
+                    <h3>AdminMiddleware</h3>
+                    <p>Kiểm tra user có phải admin không</p>
+                    <pre><code class="language-php">Route::middleware(['auth', 'admin'])->group(function () {
+    // Admin routes
+});</code></pre>
+                </div>
+
+                <div class="middleware-item">
+                    <h3>ValidateSSOSecretMiddleware</h3>
+                    <p>Xác thực secret token cho remote logout endpoint</p>
+                    <pre><code class="language-php">Route::middleware([ValidateSSOSecretMiddleware::class])->group(function () {
+    Route::post('remote-logout', [SSOAuthenticateController::class, 'forceLogout']);
+});</code></pre>
+                </div>
+            </section>
+
+            <!-- Navigation Menu -->
+            <section id="navigation-menu" class="section">
+                <h2>🧭 Navigation Menu</h2>
+                
+                <h3>Mô tả</h3>
+                <p>Tính năng Navigation Menu cho phép client app hiển thị menu điều hướng được quản lý tập trung từ SSO server. Menu được fetch tự động từ SSO server và cache trong session, giúp:</p>
+                <ul>
+                    <li>Quản lý menu tập trung từ SSO server</li>
+                    <li>Tự động cập nhật menu khi có thay đổi</li>
+                    <li>Hỗ trợ đa ngôn ngữ (language)</li>
+                    <li>Tự động refresh menu khi cần thiết</li>
+                </ul>
+
+                <h3>Cấu hình</h3>
+                <p>Thêm vào <code>.env</code>:</p>
+                <pre><code class="language-env">SSO_NAVIGATION_ENABLED=true
+SSO_MENUS_URI=/api/menus</code></pre>
+
+                <div class="info-box">
+                    <strong>Giải thích:</strong>
+                    <ul>
+                        <li><code>SSO_NAVIGATION_ENABLED</code>: Bật/tắt tính năng navigation menu (mặc định: <code>true</code>)</li>
+                        <li><code>SSO_MENUS_URI</code>: Endpoint trên SSO server để fetch menu (mặc định: <code>/api/menus</code>)</li>
+                    </ul>
+                </div>
+
+                <h3>Cách sử dụng</h3>
+                
+                <h4>Cách 1: Sử dụng View Component (Khuyến nghị)</h4>
+                <pre><code class="language-php">{{-- resources/views/layouts/app.blade.php --}}
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;My App&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    {{-- Hiển thị navigation menu từ SSO --}}
+    &lt;x-sso::navigation-menu /&gt;
+    
+    &lt;main&gt;
+        {{ $slot }}
+    &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <h4>Cách 2: Sử dụng trong View Component tùy chỉnh</h4>
+                <pre><code class="language-php">// app/View/Components/AppLayout.php
+namespace App\View\Components;
+
+use Illuminate\View\Component;
+use THKHD\SsoClient\Services\SSOClientService;
+
+class AppLayout extends Component
+{
+    public function __construct(private SSOClientService $ssoService) {}
+
+    public function render()
+    {
+        $navigation = $this->ssoService->getNavigationMenu();
+        
+        return view('layouts.app', compact('navigation'));
+    }
+}</code></pre>
+
+                <pre><code class="language-php">{{-- resources/views/layouts/app.blade.php --}}
+@if(config('sso-client.navigation_enabled', true) && !empty($navigation))
+    {!! $navigation !!}
+@endif</code></pre>
+
+                <h4>Cách 3: Sử dụng Facade trực tiếp</h4>
+                <pre><code class="language-php">use THKHD\SsoClient\Facades\SSOClient;
+
+$navigation = SSOClient::getNavigationMenu();
+
+if (config('sso-client.navigation_enabled', true) && !empty($navigation)) {
+    echo $navigation;
+}</code></pre>
+
+                <h3>Tự động lưu Menu sau khi đăng nhập</h3>
+                <p>Menu sẽ được tự động fetch và lưu sau khi đăng nhập thành công nếu bạn sử dụng <code>SSOAuthenticateController</code> hoặc <code>BaseSSOAuthenticateController</code>.</p>
+                
+                <p>Nếu bạn tự xử lý callback, hãy gọi <code>storeNavigationMenu()</code> sau khi lấy được access token:</p>
+                <pre><code class="language-php">use THKHD\SsoClient\Facades\SSOClient;
+
+public function handleCallback(Request $request)
+{
+    // ... xử lý authentication ...
+    
+    $tokenData = SSOClient::getAccessToken($request->code);
+    $accessToken = $tokenData['access_token'];
+    
+    // Lưu navigation menu với ngôn ngữ hiện tại
+    $locale = $request->session()->get('locale', config('app.locale', 'en'));
+    SSOClient::storeNavigationMenu($accessToken, $locale);
+    
+    // ... tiếp tục xử lý ...
+}</code></pre>
+
+                <h3>Refresh Menu khi đổi ngôn ngữ</h3>
+                <p>Khi user đổi ngôn ngữ, bạn cần refresh menu với ngôn ngữ mới:</p>
+                <pre><code class="language-php">use THKHD\SsoClient\Facades\SSOClient;
+
+public function switchLanguage(Request $request, string $language)
+{
+    $request->session()->put('locale', $language);
+    
+    // Refresh navigation menu với ngôn ngữ mới
+    $accessToken = SSOClient::getSSOToken();
+    if ($accessToken) {
+        SSOClient::storeNavigationMenu($accessToken, $language);
+    }
+    
+    return redirect()->back();
+}</code></pre>
+
+                <h3>Tắt Navigation Menu</h3>
+                <p>Nếu bạn không muốn sử dụng navigation menu từ SSO, có thể tắt bằng cách:</p>
+                <pre><code class="language-env"># Option 1: Tắt trong .env
+SSO_NAVIGATION_ENABLED=false</code></pre>
+
+                <pre><code class="language-php">// Option 2: Tắt trong config
+// config/sso-client.php
+'navigation_enabled' => false,</code></pre>
+
+                <h3>API Endpoint trên SSO Server</h3>
+                <p>SSO server cần cung cấp endpoint <code>/api/menus</code> (hoặc endpoint được config trong <code>SSO_MENUS_URI</code>) với:</p>
+                
+                <p><strong>Request:</strong></p>
+                <pre><code class="language-bash">GET /api/menus?lang=en&client_url=http://client-app.com
+Headers:
+  Authorization: Bearer {access_token}</code></pre>
+
+                <p><strong>Response (Success - 200):</strong></p>
+                <pre><code class="language-html">&lt;nav&gt;
+    &lt;ul&gt;
+        &lt;li&gt;&lt;a href="/dashboard"&gt;Dashboard&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href="/users"&gt;Users&lt;/a&gt;&lt;/li&gt;
+        &lt;!-- ... --&gt;
+    &lt;/ul&gt;
+&lt;/nav&gt;</code></pre>
+
+                <p><strong>Response (Forbidden - 403):</strong></p>
+                <pre><code class="language-json">{
+    "message": "User does not have permission for this client"
+}</code></pre>
+
+                <h3>Best Practices</h3>
+                <ul>
+                    <li><strong>Luôn check config:</strong> Luôn check <code>navigation_enabled</code> trước khi hiển thị menu</li>
+                    <li><strong>Xử lý menu rỗng:</strong> Luôn kiểm tra menu có rỗng không trước khi render</li>
+                    <li><strong>Cache menu:</strong> Menu được cache trong session, không cần fetch lại mỗi request</li>
+                    <li><strong>Refresh khi đổi ngôn ngữ:</strong> Nhớ refresh menu khi user đổi ngôn ngữ</li>
+                </ul>
+            </section>
+
+            <!-- Remote Logout -->
+            <section id="remote-logout" class="section">
+                <h2>🔐 Remote Logout (Force Logout từ SSO Server)</h2>
+                
+                <h3>Mô tả</h3>
+                <p>Tính năng cho phép SSO server gọi endpoint để force logout user đang đăng nhập trên client app. Hữu ích khi:</p>
+                <ul>
+                    <li>SSO server thay đổi quyền của user</li>
+                    <li>SSO server yêu cầu bắt buộc logout (bảo mật, v.v.)</li>
+                    <li>User bị vô hiệu hóa trên SSO server</li>
+                </ul>
+
+                <h3>SSO_REMOTE_LOGOUT_SECRET là gì?</h3>
+                <p><code>SSO_REMOTE_LOGOUT_SECRET</code> là một <strong>secret token</strong> dùng để xác thực các request từ SSO server khi gọi endpoint remote logout. Đây là một chuỗi bí mật được chia sẻ giữa SSO server và client app.</p>
+                
+                <div class="info-box">
+                    <strong>Mục đích:</strong>
+                    <ul>
+                        <li><strong>Bảo mật:</strong> Chỉ SSO server biết secret mới có thể gọi endpoint force logout</li>
+                        <li><strong>Ngăn chặn:</strong> Tránh người lạ gọi endpoint và logout user bất hợp pháp</li>
+                        <li><strong>Audit:</strong> Log tất cả requests để theo dõi và audit</li>
+                    </ul>
+                </div>
+
+                <h3>Cách tạo Secret</h3>
+                <pre><code class="language-bash"># Cách 1: Dùng PHP
+php -r "echo bin2hex(random_bytes(32));"
+
+# Cách 2: Dùng OpenSSL
+openssl rand -hex 32
+
+# Cách 3: Dùng Laravel Tinker
+php artisan tinker
+>>> bin2hex(random_bytes(32))</code></pre>
+
+                <h3>SSO Server gọi endpoint</h3>
+                <p><strong>Option 1: Dùng Header</strong></p>
+                <pre><code class="language-bash">curl -X POST https://your-app.com/remote-logout \
+  -H "X-SSO-Secret: your-strong-secret-token-here" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com"}'</code></pre>
+
+                <p><strong>Option 2: Dùng Query Parameter</strong></p>
+                <pre><code class="language-bash">curl -X POST "https://your-app.com/remote-logout?secret=your-strong-secret-token-here" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": 123}'</code></pre>
+
+                <h3>Response</h3>
+                <p><strong>Success:</strong></p>
+                <pre><code class="language-json">{
+  "success": true,
+  "message": "User logged out successfully",
+  "identifier": "user@example.com"
+}</code></pre>
+
+                <h3>Lưu Secret trong Database của SSO Server</h3>
+                <p><strong>Có thể lưu secret vào DB của SSO server không?</strong> ✅ <strong>Có, và đây là cách tốt!</strong></p>
+                
+                <p>Khi quản lý nhiều client apps, SSO server nên lưu secret của từng client vào database để:</p>
+                <ul>
+                    <li><strong>Quản lý tập trung:</strong> Tất cả secrets ở một nơi</li>
+                    <li><strong>Dễ rotate:</strong> Có thể đổi secret mà không cần cập nhật code</li>
+                    <li><strong>Audit trail:</strong> Theo dõi lịch sử thay đổi secret</li>
+                    <li><strong>Multi-tenant:</strong> Mỗi client có secret riêng, độc lập</li>
+                </ul>
+
+                <h4>Cấu trúc Database đề xuất:</h4>
+                <pre><code class="language-sql">CREATE TABLE sso_clients (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    client_id VARCHAR(255) UNIQUE NOT NULL,
+    client_secret VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    redirect_uri TEXT,
+    remote_logout_secret VARCHAR(255) NOT NULL,
+    remote_logout_url VARCHAR(500),
+    remote_logout_enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);</code></pre>
+
+                <h4>Laravel Model (SSO Server):</h4>
+                <pre><code class="language-php">use Illuminate\Database\Eloquent\Casts\Encrypted;
+
+class SSOClient extends Model
+{
+    protected $casts = [
+        'remote_logout_secret' => Encrypted::class,
+        'remote_logout_enabled' => 'boolean',
+    ];
+
+    public function forceLogoutUser($userId, $userEmail = null)
+    {
+        if (!$this->remote_logout_enabled) {
+            return ['success' => false, 'message' => 'Remote logout disabled'];
+        }
+
+        $response = Http::withHeaders([
+            'X-SSO-Secret' => $this->remote_logout_secret,
+        ])->post($this->remote_logout_url, [
+            'user_id' => $userId,
+            'email' => $userEmail,
+        ]);
+
+        return $response->json();
+    }
+}</code></pre>
+            </section>
+
+            <!-- Examples -->
+            <section id="examples" class="section">
+                <h2>📝 Ví dụ sử dụng</h2>
+                
+                <h3>Ví dụ đầy đủ</h3>
+                <pre><code class="language-php">use THKHD\SsoClient\Facades\SSOClient;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+// 1. Redirect to SSO
+public function redirectToSSO(Request $request)
+{
+    $state = Str::random(40);
+    $request->session()->put('sso_state', $state);
+    $redirectUrl = SSOClient::buildAuthorizationUrl($state);
+    return redirect($redirectUrl);
+}
+
+// 2. Handle callback
+public function handleCallback(Request $request)
+{
+    $sessionState = $request->session()->pull('sso_state');
+    $requestState = $request->query('state');
+    
+    if (!SSOClient::validateState($sessionState, $requestState)) {
+        abort(403, 'Invalid state');
+    }
+    
+    try {
+        $tokenData = SSOClient::getAccessToken($request->code);
+        $accessToken = $tokenData['access_token'];
+        $userInfo = SSOClient::getUser($accessToken);
+        
+        $user = SSOClient::createOrUpdateUser($userInfo);
+        
+        // Store navigation menu (chỉ khi navigation_enabled = true)
+        if (config('sso-client.navigation_enabled', true)) {
+            $locale = $request->session()->get('locale', 'en');
+            SSOClient::storeNavigationMenu($accessToken, $locale);
+        }
+        
+        Auth::login($user, true);
+        $request->session()->put('sso_token', $accessToken);
+        $request->session()->put('sso_permissions', $userInfo['permissions'] ?? []);
+        
+        return redirect()->intended('/');
+    } catch (\Exception $e) {
+        logger()->error('SSO authentication failed', ['error' => $e->getMessage()]);
+        return redirect()->route('login')->with('error', $e->getMessage());
+    }
+}</code></pre>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <p>📦 Package: <strong>thk-hd/sso-client</strong></p>
+                <p>📄 License: MIT</p>
+                <p>🔗 <a href="https://github.com/thk-hd/sso_client" target="_blank">GitHub Repository</a></p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
