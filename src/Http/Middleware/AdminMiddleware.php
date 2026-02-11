@@ -9,6 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
+    /**
+     * Handle an incoming request.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Closure $next
+     * @return \Symfony\Component\HttpFoundation\Response|\Illuminate\Http\RedirectResponse
+     */
     public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
         $user = $request->user();
@@ -25,6 +32,12 @@ class AdminMiddleware
         return $next($request);
     }
 
+    /**
+     * Check if the user is an admin.
+     *
+     * @param mixed $user
+     * @return bool
+     */
     private function isAdmin($user): bool
     {
         $adminCheck = config('sso-client.admin_check');
@@ -42,6 +55,13 @@ class AdminMiddleware
             || session()->get('sso_is_super_admin', false);
     }
 
+    /**
+     * Compare the user role with a value.
+     *
+     * @param mixed $role
+     * @param mixed $value
+     * @return bool
+     */
     private function compareRole($role, $value): bool
     {
         if ($role === $value) {

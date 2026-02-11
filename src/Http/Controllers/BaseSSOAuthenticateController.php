@@ -18,15 +18,31 @@ class BaseSSOAuthenticateController extends Controller
     protected const STATE_SESSION_KEY = 'sso_state';
     protected const STATE_LENGTH = 40;
 
+    /**
+     * Create a new controller instance.
+     *
+     * @param \THKHD\SsoClient\Services\SSOClientService $ssoService
+     */
     public function __construct(protected SSOClientService $ssoService)
     {
     }
 
+    /**
+     * Show the login form.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
     public function showLoginForm(): View
     {
         return view(config('sso-client.login_view', 'auth.login'));
     }
 
+    /**
+     * Redirect the user to the SSO provider.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function redirectToSSO(Request $request): RedirectResponse
     {
         $state = Str::random(self::STATE_LENGTH);
@@ -35,6 +51,12 @@ class BaseSSOAuthenticateController extends Controller
         return redirect($this->ssoService->buildAuthorizationUrl($state, $this->authorizationExtraParams($request)));
     }
 
+    /**
+     * Handle the callback from the SSO provider.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function callback(Request $request): RedirectResponse
     {
         try {
@@ -69,6 +91,12 @@ class BaseSSOAuthenticateController extends Controller
         }
     }
 
+    /**
+     * Log the user out of the application.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function logout(Request $request): RedirectResponse
     {
         try {
@@ -94,6 +122,13 @@ class BaseSSOAuthenticateController extends Controller
         return redirect()->route($this->loginRoute());
     }
 
+    /**
+     * Switch the application language.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $language
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function switchLanguage(Request $request, string $language): RedirectResponse
     {
         session()->put('locale', $language);
@@ -110,6 +145,12 @@ class BaseSSOAuthenticateController extends Controller
         return redirect()->back();
     }
 
+    /**
+     * Force logout a user by email or user ID.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function forceLogout(Request $request): JsonResponse
     {
         try {
@@ -132,37 +173,92 @@ class BaseSSOAuthenticateController extends Controller
         }
     }
 
+    /**
+     * Get the route to the login page.
+     *
+     * @return string
+     */
     protected function loginRoute(): string
     {
         return config('sso-client.routes.login', 'login');
     }
 
+    /**
+     * Get the post-login redirect path.
+     *
+     * @return string
+     */
     protected function redirectPath(): string
     {
         return config('sso-client.redirect_path', '/');
     }
 
+    /**
+     * Get extra parameters for the authorization URL.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return array
+     */
     protected function authorizationExtraParams(Request $request): array
     {
         return [];
     }
 
+    /**
+     * Get the guard to be used during authentication.
+     *
+     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     */
+    protected function guard()
+    {
+        return Auth::guard();
+    }
+
+    /**
+     * Get the callback to sync the user.
+     *
+     * @return callable|null
+     */
     protected function userSyncCallback(): ?callable
     {
         return null;
     }
 
+    /**
+     * Handle actions after the user has been synced.
+     *
+     * @param mixed $user
+     * @param array $userInfo
+     * @param \Illuminate\Http\Request $request
+     * @return void
+     */
     protected function afterUserSynced(mixed $user, array $userInfo, Request $request): void
     {
     }
 
+    /**
+     * Handle actions before the user is logged out.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return void
+     */
     protected function beforeLogout(Request $request): void
     {
     }
 
+    /**
+     * Handle the authenticated user.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param mixed $user
+     * @param array $userInfo
+     * @param string $accessToken
+     * @return \Illuminate\Http\RedirectResponse
+     */
     protected function handleAuthenticated(Request $request, mixed $user, array $userInfo, string $accessToken): RedirectResponse
     {
-        Auth::login($user, false);
+        $remember = $request->cookies->get('remember', false);
+        $this->guard()->login($user, $remember);
 
         $request->session()->put('sso_user', true);
         $request->session()->put('sso_token', $accessToken);
@@ -176,6 +272,14 @@ class BaseSSOAuthenticateController extends Controller
         return redirect()->intended($this->redirectPath());
     }
 
+    /**
+     * Handle exceptions when storing the navigation menu.
+     *
+     * @param \Exception $exception
+     * @param mixed $user
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     protected function handleStoreNavigationException(\Exception $exception, mixed $user, Request $request): RedirectResponse
     {
         Log::warning('User does not have permission for this client', [
@@ -190,11 +294,25 @@ class BaseSSOAuthenticateController extends Controller
             ->with('error', 'Page cannot be accessed.');
     }
 
+    /**
+     * Resolve the locale for the user.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return string
+     */
     protected function resolveLocale(Request $request): string
     {
         return $request->session()->get('locale', config('app.locale'));
     }
 
+    /**
+     * Validate the state parameter.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return void
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
     protected function validateState(Request $request): void
     {
         $sessionState = $request->session()->pull(self::STATE_SESSION_KEY);

@@ -28,6 +28,8 @@ class InstallSSOClientCommand extends Command
 
     /**
      * Execute the console command.
+     *
+     * @return int
      */
     public function handle(): int
     {
@@ -87,6 +89,8 @@ class InstallSSOClientCommand extends Command
 
     /**
      * Publish config file with options for existing files.
+     *
+     * @return void
      */
     protected function publishConfig(): void
     {
@@ -153,6 +157,9 @@ class InstallSSOClientCommand extends Command
 
     /**
      * Merge new config values with existing config file.
+     *
+     * @param string $configPath
+     * @return void
      */
     protected function mergeConfigFile(string $configPath): void
     {
@@ -217,6 +224,8 @@ class InstallSSOClientCommand extends Command
 
     /**
      * Create routes file with SSO routes.
+     *
+     * @return void
      */
     protected function createRoutesFile(): void
     {
@@ -246,6 +255,9 @@ class InstallSSOClientCommand extends Command
 
     /**
      * Create routes stub file.
+     *
+     * @param string $stubPath
+     * @return void
      */
     protected function createRoutesStub(string $stubPath): void
     {
@@ -427,6 +439,8 @@ PHP;
 
     /**
      * Register middleware in bootstrap/app.php.
+     *
+     * @return void
      */
     protected function registerMiddleware(): void
     {
@@ -525,6 +539,8 @@ PHP;
 
     /**
      * Configure admin check in AppServiceProvider.
+     *
+     * @return void
      */
     protected function configureAdminCheck(): void
     {
@@ -571,6 +587,8 @@ PHP;
 
     /**
      * Display next steps instructions.
+     *
+     * @return void
      */
     protected function displayNextSteps(): void
     {

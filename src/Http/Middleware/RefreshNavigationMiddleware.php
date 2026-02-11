@@ -11,10 +11,22 @@ use THKHD\SsoClient\Services\SSOClientService;
 
 class RefreshNavigationMiddleware
 {
+    /**
+     * Create a new middleware instance.
+     *
+     * @param \THKHD\SsoClient\Services\SSOClientService $ssoService
+     */
     public function __construct(private SSOClientService $ssoService)
     {
     }
 
+    /**
+     * Handle an incoming request.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Closure $next
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function handle(Request $request, Closure $next): Response
     {
         if ($this->shouldSkip($request)) {
@@ -46,11 +58,24 @@ class RefreshNavigationMiddleware
         return $next($request);
     }
 
+    /**
+     * Determine if the middleware should be skipped for the current request.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return bool
+     */
     private function shouldSkip(Request $request): bool
     {
         return Auth::guest() || $request->routeIs(...config('sso-client.middleware.skip_routes', []));
     }
 
+    /**
+     * Force logout the user and redirect to login page.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string|null $error
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     private function forceLogout(Request $request, ?string $error = null): Response
     {
         Auth::logout();

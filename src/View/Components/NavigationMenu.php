@@ -19,6 +19,12 @@ class NavigationMenu extends Component
      * Create a new component instance.
      * No dependency injection to reduce overhead - we read directly from session.
      */
+    /**
+     * Create a new component instance.
+     * No dependency injection to reduce overhead - we read directly from session.
+     *
+     * @return void
+     */
     public function __construct()
     {
         // Component is lightweight - no service injection needed
@@ -27,6 +33,8 @@ class NavigationMenu extends Component
 
     /**
      * Get the view / contents that represent the component.
+     *
+     * @return string
      */
     public function render(): string
     {

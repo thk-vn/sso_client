@@ -9,6 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ValidateSSOSecretMiddleware
 {
+    /**
+     * Handle an incoming request.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Closure $next
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $secret = config('sso-client.remote_logout_secret');
@@ -39,6 +46,12 @@ class ValidateSSOSecretMiddleware
         return $next($request);
     }
 
+    /**
+     * Extract the secret from the request.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return string|null
+     */
     private function extractSecret(Request $request): ?string
     {
         $secret = $request->header('X-SSO-Secret')

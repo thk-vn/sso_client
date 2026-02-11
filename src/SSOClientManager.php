@@ -25,6 +25,9 @@ class SSOClientManager
     private ?string $menusUri;
     private ?string $revokeUri;
 
+    /**
+     * Create a new SSO client manager instance.
+     */
     public function __construct()
     {
         $this->tokenKey = config('sso-client.token_key', 'sso_token');
@@ -40,6 +43,13 @@ class SSOClientManager
         $this->httpClient = $this->createHttpClient();
     }
 
+    /**
+     * Get the access token from the SSO server.
+     *
+     * @param string $code
+     * @return array
+     * @throws \THKHD\SsoClient\Exceptions\AccessTokenException
+     */
     public function getAccessToken(string $code): array
     {
         $response = $this->httpClient->asForm()->post($this->buildUrl($this->tokenUri), [
@@ -69,6 +79,13 @@ class SSOClientManager
         return $data;
     }
 
+    /**
+     * Build the authorization URL.
+     *
+     * @param string $state
+     * @param array $extraParams
+     * @return string
+     */
     public function buildAuthorizationUrl(string $state, array $extraParams = []): string
     {
         $query = array_merge([
@@ -82,11 +99,24 @@ class SSOClientManager
         return $this->buildUrl($this->authorizeUri) . '?' . http_build_query($query);
     }
 
+    /**
+     * Get the user information from the SSO server (Alias for getUser).
+     *
+     * @param string $accessToken
+     * @return array
+     */
     public function user(string $accessToken): array
     {
         return $this->getUser($accessToken);
     }
 
+    /**
+     * Get the user information from the SSO server.
+     *
+     * @param string $accessToken
+     * @return array
+     * @throws \THKHD\SsoClient\Exceptions\UserFetchException
+     */
     public function getUser(string $accessToken): array
     {
         $response = $this->httpClient->withToken($accessToken)->get($this->buildUrl($this->userUri));
@@ -105,6 +135,14 @@ class SSOClientManager
         return $data['data'] ?? $data;
     }
 
+    /**
+     * Store the navigation menu in the session.
+     *
+     * @param string $accessToken
+     * @param string|null $lang
+     * @return void
+     * @throws \Exception
+     */
     public function storeNavigationMenu(string $accessToken, ?string $lang = 'en'): void
     {
         if (!$this->menusUri) {
@@ -130,21 +168,46 @@ class SSOClientManager
         throw new \Exception('Unauthenticated.');
     }
 
+    /**
+     * Get the navigation menu from the session.
+     *
+     * @return mixed
+     */
     public function getNavigationMenu(): mixed
     {
         return session(self::NAVIGATION_CACHE_KEY);
     }
 
+    /**
+     * Clear the navigation menu from the session.
+     *
+     * @return void
+     */
     public function clearNavigationMenu(): void
     {
         session()->forget(self::NAVIGATION_CACHE_KEY);
     }
 
+    /**
+     * Validate the state parameter.
+     *
+     * @param string|null $sessionState
+     * @param string|null $requestState
+     * @return bool
+     */
     public function validateState(?string $sessionState, ?string $requestState): bool
     {
         return $sessionState && $requestState && hash_equals($sessionState, $requestState);
     }
 
+    /**
+     * Create or update the user in the local database.
+     *
+     * @param array $userData
+     * @param callable|null $callback
+     * @return mixed
+     * @throws \Exception
+     */
     public function createOrUpdateUser(array $userData, ?callable $callback = null): mixed
     {
         if (!isset($userData['email'])) {
@@ -163,6 +226,12 @@ class SSOClientManager
         }
     }
 
+    /**
+     * Revoke the access token.
+     *
+     * @param string $accessToken
+     * @return bool
+     */
     public function revokeToken(string $accessToken): bool
     {
         if (!$this->revokeUri) {
@@ -187,26 +256,54 @@ class SSOClientManager
         }
     }
 
+    /**
+     * Save the navigation menu to the session.
+     *
+     * @param mixed $data
+     * @return void
+     */
     public function saveNavigation(mixed $data): void
     {
         session()->put(self::NAVIGATION_CACHE_KEY, $data);
     }
 
+    /**
+     * Save the SSO token to the session.
+     *
+     * @param string $tokenInfo
+     * @return void
+     */
     public function saveSSOToken(string $tokenInfo): void
     {
         session()->put($this->tokenKey, $tokenInfo);
     }
 
+    /**
+     * Get the SSO token from the session.
+     *
+     * @return string
+     */
     public function getSSOToken(): string
     {
         return session($this->tokenKey, '');
     }
 
+    /**
+     * Clear the SSO token from the session.
+     *
+     * @return void
+     */
     public function clearSSOToken(): void
     {
         session()->forget($this->tokenKey);
     }
 
+    /**
+     * Force logout a user by identifier.
+     *
+     * @param string $identifier
+     * @return bool
+     */
     public function forceLogout(string $identifier): bool
     {
         try {
@@ -245,6 +342,12 @@ class SSOClientManager
         }
     }
 
+    /**
+     * Delete user sessions from the database.
+     *
+     * @param int $userId
+     * @return bool
+     */
     protected function deleteUserSessions(int $userId): bool
     {
         try {
@@ -256,11 +359,24 @@ class SSOClientManager
         }
     }
 
+    /**
+     * Build the full URL for an endpoint.
+     *
+     * @param string $endpoint
+     * @return string
+     */
     private function buildUrl(string $endpoint): string
     {
         return rtrim($this->serverUrl, '/') . '/' . ltrim($endpoint, '/');
     }
 
+    /**
+     * Default method to create or update a user.
+     *
+     * @param array $userData
+     * @return mixed
+     * @throws \Exception
+     */
     private function createOrUpdateUserDefault(array $userData): mixed
     {
         $userClass = config('sso-client.user_model', 'App\\Models\\User');
@@ -278,6 +394,11 @@ class SSOClientManager
         );
     }
 
+    /**
+     * Create a configured HTTP client.
+     *
+     * @return \Illuminate\Http\Client\PendingRequest
+     */
     private function createHttpClient(): PendingRequest
     {
         $client = Http::timeout(30)
